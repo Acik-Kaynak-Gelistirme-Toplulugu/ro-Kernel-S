@@ -1,6 +1,6 @@
 srpm:
 	dnf install -y rpmdevtools
-	# Spec dosyasındaki Source linklerini tarar ve indirir (Tarball buraya gelir)
-	spectool -g -R specs/kernel.spec
-	# İndirilen dosyaları ve spec'i kullanarak Kaynak RPM (SRPM) oluşturur
+	# Kaynaklari specs klasorunun ICINE (-C specs) indir:
+	spectool -g -C specs -R specs/kernel.spec
+	# Simdi derle:
 	rpmbuild -bs --define "_sourcedir $(PWD)/specs" --define "_srcrpmdir $(outdir)" specs/kernel.spec
