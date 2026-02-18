@@ -1,0 +1,14 @@
+# Büyük dosyalar (Copr bunları kendi indirir/oluşturur)
+*.src.rpm
+*.rpm
+specs/linux-*.tar.xz
+
+# Derleme çıktıları
+build/
+linux-6.19/
+
+# Geçici dosyalar
+*.log
+*.txt
+check_script.sh
+specs/bore.part*
