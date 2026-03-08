@@ -1,0 +1,47 @@
+name: COPR to GitHub Releases
+
+on:
+  repository_dispatch:
+    types: [copr_build_complete]  # COPR tarafından tetiklenecek Webhook eventi
+  workflow_dispatch:              # GitHub üzerinden manuel tıklanma ihtimaline karşı
+
+permissions:
+  contents: write
+
+jobs:
+  release-rpms:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:40
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: System Dependencies
+        run: dnf install -y dnf-plugins-core findutils
+
+      - name: Enable COPR and Download RPMs
+        run: |
+          mkdir -p /tmp/rpms
+          cd /tmp/rpms
+          
+          # DİKKAT: COPR deponuzun yolunu aşağıya tam olarak girin: (örneğin: smurat/Ro-Kernel-S)
+          COPR_REPO="smurat/Ro-Kernel-S"
+          
+          echo "Enabling COPR repostiory: $COPR_REPO"
+          dnf copr enable -y "$COPR_REPO"
+          
+          echo "Düşen son derlenmiş COPR Kernel paketleri GitHub Actions üzerine indiriliyor..."
+          # Başka repolardan standart kurulum yapmak yerine sadece COPR'ı baz alıyoruz
+          # İhtiyaca göre paket isimleri buraya eklenebilir veya değiştirilebilir
+          dnf download --disablerepo="*" --enablerepo="copr:copr.fedorainfracloud.org:*" kernel kernel-headers kernel-devel
+          
+      - name: Create GitHub Release and Upload RPMs
+        uses: softprops/action-gh-release@v1
+        with:
+          files: /tmp/rpms/*.rpm
+          tag_name: "v7.0-Ro-Kernel-S-${{ github.run_number }}"
+          name: "Ro-Kernel-S Build #${{ github.run_number }}"
+          body: "Automated RPM release pulled from Fedora COPR repository."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
